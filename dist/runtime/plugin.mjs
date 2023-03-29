@@ -54,9 +54,18 @@ export default defineNuxtPlugin((nuxtApp) => {
       ...clientConfig?.httpLinkOptions && clientConfig.httpLinkOptions,
       uri: process.client && clientConfig.browserHttpEndpoint || clientConfig.httpEndpoint,
       headers: { ...clientConfig?.httpLinkOptions?.headers || {} },
-      print: (ast, originalPrint) => minimizeQuery(originalPrint(ast)),
+      print: (ast, originalPrint) => {
+        if (ast.definitions[0].operation === 'query') {
+          return minimizeQuery(originalPrint(ast))
+        } else {
+          return originalPrint(ast)
+        }
+      },
       fetch(url, options) {
-        return fetch(decodeURI(url).replace(/%2520/g, ' '), options)
+        if (options.method === 'GET') {
+          url = decodeURI(url).replace(/%20/g, ' ').replace(/%7B/g, '{').replace(/%7D/g, '}')
+        }
+        return fetch(url, options)
       }
     }));
     let wsLink = null;
