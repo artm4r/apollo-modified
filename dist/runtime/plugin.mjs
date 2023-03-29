@@ -49,10 +49,15 @@ export default defineNuxtPlugin((nuxtApp) => {
         }
       };
     });
+    const minimizeQuery = (query) => {
+      const min = decodeURI(query).replace(/\s+/g, ' ')
+      return encodeURI(min)
+    }
     const httpLink = authLink.concat(createHttpLink({
       ...clientConfig?.httpLinkOptions && clientConfig.httpLinkOptions,
       uri: process.client && clientConfig.browserHttpEndpoint || clientConfig.httpEndpoint,
-      headers: { ...clientConfig?.httpLinkOptions?.headers || {} }
+      headers: { ...clientConfig?.httpLinkOptions?.headers || {} },
+      print: (ast, originalPrint) => minimizeQuery(originalPrint(ast)),
     }));
     let wsLink = null;
     if (process.client && clientConfig.wsEndpoint) {
