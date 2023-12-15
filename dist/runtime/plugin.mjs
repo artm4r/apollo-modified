@@ -104,8 +104,8 @@ export default defineNuxtPlugin((nuxtApp) => {
     const errorLink = onError((err) => {
       nuxtApp.callHook("apollo:error", err);
     });
-    const link = ApolloLink.from([
-      responseHeaderLink,
+
+    const resultOptionsArray = [
       errorLink,
       ...!wsLink ? [httpLink] : [
         ...clientConfig?.websocketsOnly ? [wsLink] : [
@@ -119,7 +119,10 @@ export default defineNuxtPlugin((nuxtApp) => {
           )
         ]
       ]
-    ]);
+    ]
+    if (clientConfig?.enableMagentoTagsCaching) resultOptionsArray.unshift(responseHeaderLink)
+
+    const link = ApolloLink.from(resultOptionsArray);
     const cache = new InMemoryCache(clientConfig.inMemoryCacheOptions);
     clients[key] = new ApolloClient({
       link,
