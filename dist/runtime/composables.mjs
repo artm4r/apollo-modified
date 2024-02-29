@@ -20,7 +20,7 @@ const prep = (...args) => {
     clientId = clients?.default ? "default" : Object.keys(clients)[0];
   }
   const key = args?.[0]?.key || hash({ query: print(query), variables, clientId });
-  const fn = () => clients[clientId]?.query({ query, variables, fetchPolicy: "no-cache" }).then((r) => r.data);
+  const fn = () => clients[clientId]?.query({ query, variables, fetchPolicy: cache ? "cache-first" : "no-cache" }).then((r) => r.data);
   return { key, query, clientId, variables, fn };
 };
 export const useApollo = () => {
