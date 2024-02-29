@@ -41,6 +41,7 @@ const module = defineNuxtModule({
     nuxt.options.build.transpile = nuxt.options.build.transpile || [];
     nuxt.options.build.transpile.push(
       resolve("runtime"),
+      "tslib",
       "@wry/context",
       "@apollo/client",
       "@vue/apollo-composable",

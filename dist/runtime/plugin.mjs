@@ -7,12 +7,28 @@ import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { setContext } from "@apollo/client/link/context";
 import createRestartableClient from "./ws.mjs";
 import { useApollo } from "./composables.mjs";
-import { ref, useCookie, defineNuxtPlugin, useRequestHeaders } from "#imports";
+import { ref, useCookie, defineNuxtPlugin, useRequestHeaders, useRoute } from "#imports";
 import NuxtApollo from "#apollo";
 export default defineNuxtPlugin((nuxtApp) => {
   const requestCookies = process.server && NuxtApollo.proxyCookies && useRequestHeaders(["cookie"]) || void 0;
   const clients = {};
   for (const [key, clientConfig] of Object.entries(NuxtApollo.clients)) {
+    const responseHeaderLink = new ApolloLink((operation, forward) => {
+      const route = useRoute().fullPath
+      return forward(operation).map(response => {
+        const { response: { headers } } = operation.getContext();
+        if (headers && headers.get('x-magento-tags')) {
+          fetch(clientConfig.baseSiteUrl + '/api/_tags', {
+            method: 'POST',
+            body: JSON.stringify({
+              tags: headers.get('x-magento-tags'),
+              url: route
+            })
+          }).catch(e => console.log(e))
+        }
+        return response;
+      });
+    });
     const getAuth = async () => {
       const token = ref();
       await nuxtApp.callHook("apollo:auth", { token, client: key });
@@ -88,7 +104,8 @@ export default defineNuxtPlugin((nuxtApp) => {
     const errorLink = onError((err) => {
       nuxtApp.callHook("apollo:error", err);
     });
-    const link = ApolloLink.from([
+
+    const resultOptionsArray = [
       errorLink,
       ...!wsLink ? [httpLink] : [
         ...clientConfig?.websocketsOnly ? [wsLink] : [
@@ -102,7 +119,10 @@ export default defineNuxtPlugin((nuxtApp) => {
           )
         ]
       ]
-    ]);
+    ]
+    if (clientConfig?.enableMagentoTagsCaching) resultOptionsArray.unshift(responseHeaderLink)
+
+    const link = ApolloLink.from(resultOptionsArray);
     const cache = new InMemoryCache(clientConfig.inMemoryCacheOptions);
     clients[key] = new ApolloClient({
       link,
