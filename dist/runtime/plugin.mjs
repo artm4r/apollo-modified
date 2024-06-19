@@ -14,7 +14,6 @@ export default defineNuxtPlugin((nuxtApp) => {
   const clients = {};
   for (const [key, clientConfig] of Object.entries(NuxtApollo.clients)) {
     const responseHeaderLink = new ApolloLink((operation, forward) => {
-      const route = useRoute().fullPath
       return forward(operation).map(response => {
         const { response: { headers } } = operation.getContext();
         if (headers && headers.get('x-magento-tags')) {
@@ -22,7 +21,7 @@ export default defineNuxtPlugin((nuxtApp) => {
             method: 'POST',
             body: JSON.stringify({
               tags: headers.get('x-magento-tags'),
-              url: route
+              url: nuxtApp.ssrContext.url
             })
           }).catch(e => console.log(e))
         }
