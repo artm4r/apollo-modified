@@ -10,6 +10,13 @@ type CookieAttributes = Omit< CookieOptions, 'encode' | 'decode' | 'expires' | '
 
 type ClientConfig = {
   /**
+   * Enable magento tags caching (CUSTOM FEATURE).
+   * @type {boolean}
+   * @default false
+   */
+  enableMagentoTagsCaching?: boolean;
+
+  /**
    * The GraphQL endpoint.
    * @type {string}
    */
