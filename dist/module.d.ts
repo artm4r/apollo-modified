@@ -10,7 +10,15 @@ type CookieAttributes = Omit< CookieOptions, 'encode' | 'decode' | 'expires' | '
 
 type ClientConfig = {
   /**
+   * Base site url, required for magento tags caching (CUSTOM FEATURE).
+   * @type {boolean}
+   * @default false
+   */
+  baseSiteUrl?: string;
+
+  /**
    * Enable magento tags caching (CUSTOM FEATURE).
+   * requires `baseSiteUrl`
    * @type {boolean}
    * @default false
    */
